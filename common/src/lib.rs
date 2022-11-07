@@ -2,7 +2,7 @@ use std::env;
 use std::process::Command;
 
 pub const SEP: &str = "    ";
-pub const OK_STATUS: &str = "OK";
+pub const OK_STATUS: &str = "OK    ";
 pub const NOT_OK_STATUS: &str = "NOT OK";
 
 #[derive(Default, Debug, Clone)]

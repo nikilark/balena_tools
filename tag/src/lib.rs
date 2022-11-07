@@ -30,7 +30,6 @@ pub fn set_tag(key : &str, value : &str, to : &Device, remove : bool) {
         get_output(format!("balena tag set {} {} --device {}", key, value, to.uuid).as_str());
     }
     else {
-        println!("Removing");
         get_output(format!("balena tag rm {} --device {}", key, to.uuid).as_str());
     }
 }
