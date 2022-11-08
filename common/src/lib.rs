@@ -3,7 +3,8 @@ use std::process::Command;
 
 pub const SEP: &str = "    ";
 pub const OK_STATUS: &str = "OK    ";
-pub const NOT_OK_STATUS: &str = "NOT OK";
+pub const NOT_OK_STATUS: &str = "NOT_OK";
+const DEVICES_CACHE : &str = "/cache/devices.txt";
 
 #[derive(Default, Debug, Clone)]
 pub struct Device {
@@ -43,10 +44,14 @@ pub struct DeviceLong {
     pub memory_used_mb: u64,
     pub memory_total_mb: u64,
     pub memory_usage_percent: u8,
-    pub storage_block_devuce: String,
+    pub storage_block_device: String,
     pub storage_usage_mb: u128,
     pub storage_total_mb: u128,
     pub storage_usage_percent: u8,
+}
+
+fn get_cache_path() -> String {
+    return format!("{}{}",std::env::current_exe().unwrap().parent().unwrap().display(), DEVICES_CACHE)
 }
 
 pub fn output_to_string(output: std::process::Output) -> String {
@@ -69,31 +74,48 @@ pub fn check_balena_installed() -> bool {
     !get_output("balena --version").is_empty()
 }
 
+fn line_to_device(line : &str) -> Device {
+    let splitted: Vec<&str> = line.split_whitespace().collect();
+    if splitted.len() != 11 {
+        Device::default()
+    } else {
+        Device {
+            id: splitted[0].to_string(),
+            uuid: splitted[1].to_string(),
+            name: splitted[2].to_string(),
+            device_type: splitted[3].to_string(),
+            fleet: splitted[4].to_string(),
+            status: splitted[5].to_string(),
+            online: splitted[6].to_string().to_lowercase() == "true",
+            supervisor: splitted[7].to_string(),
+            os: splitted[8].to_string(),
+            os_version: splitted[9].to_string(),
+            url: splitted[10].to_string(),
+        }
+    }
+}
+
+pub fn update_cache() -> String {
+    let c = get_cache_path();
+    let path = std::path::Path::new(&c);
+    if !path.exists(){
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    }
+    let res = get_output("balena devices");
+    std::fs::write(c, res.clone()).unwrap();
+    res
+}
+
 pub fn get_devices() -> Vec<Device> {
-    get_output("balena devices")
-        .split('\n')
-        .skip(1)
-        .map(|d| {
-            let splitted: Vec<&str> = d.split_whitespace().collect();
-            if splitted.len() != 11 {
-                Device::default()
-            } else {
-                Device {
-                    id: splitted[0].to_string(),
-                    uuid: splitted[1].to_string(),
-                    name: splitted[2].to_string(),
-                    device_type: splitted[3].to_string(),
-                    fleet: splitted[4].to_string(),
-                    status: splitted[5].to_string(),
-                    online: splitted[6].to_string().to_lowercase() == "true",
-                    supervisor: splitted[7].to_string(),
-                    os: splitted[8].to_string(),
-                    os_version: splitted[9].to_string(),
-                    url: splitted[10].to_string(),
-                }
-            }
-        })
-        .collect()
+    let mut file_content = std::fs::read_to_string(get_cache_path()).unwrap_or("".to_string());
+    if file_content.is_empty() {
+        file_content = update_cache();
+    }
+    file_content  
+    .split('\n')
+    .skip(1)
+    .map(line_to_device)
+    .collect()
 }
 
 pub fn get_device_by_name(name: &str, devices: &Vec<Device>) -> Option<Device> {
@@ -148,7 +170,7 @@ pub fn get_device_long_info(device: Device) -> Option<DeviceLong> {
         memory_used_mb: get_next_value().parse().unwrap_or(0),
         memory_total_mb: get_next_value().parse().unwrap_or(0),
         memory_usage_percent: get_next_value().parse().unwrap_or(0),
-        storage_block_devuce: get_next_value(),
+        storage_block_device: get_next_value(),
         storage_usage_mb: get_next_value().parse().unwrap_or(0),
         storage_total_mb: get_next_value().parse().unwrap_or(0),
         storage_usage_percent: get_next_value().parse().unwrap_or(0),

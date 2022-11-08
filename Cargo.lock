@@ -15,11 +15,12 @@ dependencies = [
 
 [[package]]
 name = "balena_tools"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "commit",
  "common",
+ "device",
  "for_each",
  "tag",
 ]
@@ -78,6 +79,14 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
+
+[[package]]
+name = "device"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "common",
+]
 
 [[package]]
 name = "for_each"
