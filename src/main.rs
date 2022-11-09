@@ -25,11 +25,11 @@ impl FromStr for BalenaCommands {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "tag" => Ok(BalenaCommands::Tag),
-            "commit" => Ok(BalenaCommands::Commit),
-            "for_each" => Ok(BalenaCommands::ForEach),
-            "device" | "dev" => Ok(BalenaCommands::Device),
-            "update" => Ok(BalenaCommands::UpdateCache),
+            "tag" | "t" => Ok(BalenaCommands::Tag),
+            "commit" | "c" => Ok(BalenaCommands::Commit),
+            "for_each" | "foreach" | "fe" => Ok(BalenaCommands::ForEach),
+            "device" | "dev" | "d" => Ok(BalenaCommands::Device),
+            "update" | "u" => Ok(BalenaCommands::UpdateCache),
             _ => Err(Self::Err::new(
                 std::io::ErrorKind::NotFound,
                 "Unknown command",
@@ -38,11 +38,18 @@ impl FromStr for BalenaCommands {
     }
 }
 
+const COMMAND_HELP : &str = "One of:\n
+tag | t -- to set/remove tag\n
+commit | c -- to check commit of devices\n
+for_each | foreach | fe -- to execute general command for list of devices\n
+device | dev | d -- to show info about devices\n
+update | u -- to update cache";
+
 #[derive(Parser, Debug)]
 #[command(author, version, about="Some common operations with balena-cli", long_about = None)]
 struct Args {
     // Command
-    #[clap(flatten = true, help = "One of \"tag\", \"commit\", \"for_each\", \"device\", \"update\"")]
+    #[clap(flatten = true, help = COMMAND_HELP)]
     command: BalenaCommands,
 }
 

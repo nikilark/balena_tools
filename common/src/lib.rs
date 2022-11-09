@@ -4,7 +4,7 @@ use std::process::Command;
 pub const SEP: &str = "    ";
 pub const OK_STATUS: &str = "OK    ";
 pub const NOT_OK_STATUS: &str = "NOT_OK";
-const DEVICES_CACHE : &str = "/cache/devices.txt";
+const DEVICES_CACHE: &str = "/cache/devices.txt";
 
 #[derive(Default, Debug, Clone)]
 pub struct Device {
@@ -51,7 +51,11 @@ pub struct DeviceLong {
 }
 
 fn get_cache_path() -> String {
-    return format!("{}{}",std::env::current_exe().unwrap().parent().unwrap().display(), DEVICES_CACHE)
+    return format!(
+        "{}{}",
+        std::env::current_exe().unwrap().parent().unwrap().display(),
+        DEVICES_CACHE
+    );
 }
 
 pub fn output_to_string(output: std::process::Output) -> String {
@@ -74,7 +78,7 @@ pub fn check_balena_installed() -> bool {
     !get_output("balena --version").is_empty()
 }
 
-fn line_to_device(line : &str) -> Device {
+fn line_to_device(line: &str) -> Device {
     let splitted: Vec<&str> = line.split_whitespace().collect();
     if splitted.len() != 11 {
         Device::default()
@@ -98,7 +102,7 @@ fn line_to_device(line : &str) -> Device {
 pub fn update_cache() -> String {
     let c = get_cache_path();
     let path = std::path::Path::new(&c);
-    if !path.exists(){
+    if !path.exists() {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     }
     let res = get_output("balena devices");
@@ -106,16 +110,20 @@ pub fn update_cache() -> String {
     res
 }
 
-pub fn get_devices() -> Vec<Device> {
-    let mut file_content = std::fs::read_to_string(get_cache_path()).unwrap_or("".to_string());
-    if file_content.is_empty() {
+pub fn get_devices(force_update: bool) -> Vec<Device> {
+    let mut file_content = if force_update {
+        update_cache()
+    } else {
+        std::fs::read_to_string(get_cache_path()).unwrap_or("".to_string())
+    };
+    if file_content.is_empty() && !force_update {
         file_content = update_cache();
     }
-    file_content  
-    .split('\n')
-    .skip(1)
-    .map(line_to_device)
-    .collect()
+    file_content
+        .split('\n')
+        .skip(1)
+        .map(line_to_device)
+        .collect()
 }
 
 pub fn get_device_by_name(name: &str, devices: &Vec<Device>) -> Option<Device> {
@@ -137,12 +145,13 @@ pub fn get_device_by_name(name: &str, devices: &Vec<Device>) -> Option<Device> {
 pub fn get_device_long_info(device: Device) -> Option<DeviceLong> {
     let command = format!("balena device {}", device.uuid);
     let output_fields: Vec<String> = get_output(command.as_str())
-        .split('\n').map(|s| s.to_string())
+        .split('\n')
+        .map(|s| s.to_string())
         .collect();
     if output_fields.len() != 26 {
         return None;
     }
-    let get_value = |f : &String| f[f.find(':').unwrap() + 1..].trim().to_string();
+    let get_value = |f: &String| f[f.find(':').unwrap() + 1..].trim().to_string();
     let mut cnt = 0;
     let mut get_next_value = || {
         cnt += 1;

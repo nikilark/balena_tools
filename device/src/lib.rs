@@ -2,15 +2,15 @@ use clap::*;
 use common::*;
 use std::env;
 const FORMAT_HELP: &str =
-    "String with format. Leave empty to open device in browser. Possible arguments are : \n
+    "String with format. Leave empty to open device in browser. Possible arguments are: \n
 %name, %n,\n
-%id, %i -- id,\n
+%id, %i,\n
 %type, %t -- device type,\n
-%status, %s -- device status,\n
+%status, %s -- device status, will be \"not_found\" if not found,\n
 %online, %o,\n
-%ip,\n
+%ip -- list of IPs, coma separated,\n
 %pip -- public IP,\n
-%mac,\n
+%mac -- list of MACs, coma separated,\n
 %fleet, %f\n
 %last_seen, %ls,\n
 %uuid, %ui,\n
@@ -85,6 +85,10 @@ struct Args {
     #[arg(long="format", help=FORMAT_HELP, default_value="")]
     format: String,
 
+    // To update
+    #[arg(short = 'u', long = "update", help = "Update cache before operation")]
+    update: bool,
+
     // File with devices
     #[arg(short = 'f', long = "file", help = "File with devices, one per line")]
     file: Option<String>,
@@ -94,7 +98,7 @@ struct Args {
     devices: Vec<String>,
 }
 
-fn give_relevant(arg: &str, info: &DeviceLong, name : &String) -> String {
+fn give_relevant(arg: &str, info: &DeviceLong, name: &String) -> String {
     match arg {
         "%name" | "%n" => name.clone(),
         "%id" | "%i" => info.id.clone(),
@@ -133,32 +137,35 @@ pub fn open_url(device: Device) {
     };
     get_output(&format!("{} {}", open_with, device.url));
 }
-
+fn get_device_info(d: Option<Device>) -> DeviceLong {
+    let mut not_found_device = DeviceLong::default();
+    not_found_device.status = "not_found".to_string();
+    match d {
+        Some(d) => get_device_long_info(d).unwrap_or(not_found_device),
+        None => not_found_device,
+    }
+}
 pub fn execute_command(args: Vec<String>) {
     let args = Args::parse_from(args);
-    let all_devices = get_devices();
+    let all_devices = get_devices(args.update);
     let input_devices = get_input_devices(args.file, Some(args.devices));
     for device in input_devices {
-        match get_device_by_name(device.as_str(), &all_devices) {
-            Some(d) => {
-                if args.format.is_empty() {
-                    open_url(d);
-                    println!("{}{}{}", OK_STATUS, SEP, device);
-                } else {
-                    let device_info = get_device_long_info(d).unwrap_or_else(|| {
-                        let mut d = DeviceLong::default();
-                        d.status = "not_found".to_string();
-                        d
-                    });
-                    let mut result = args.format.clone();
-                    for arg in ALL_ARGS {
-                        result = result.replace(arg, &give_relevant(arg, &device_info, &device));
-                    }
-                    result = result.replace("\\t", "\t");
-                    println!("{}", result);
-                }
+        let device_short = get_device_by_name(device.as_str(), &all_devices);
+        if args.format.is_empty() {
+            if device_short.is_some() {
+                open_url(device_short.unwrap());
+                println!("{}{}{}", OK_STATUS, SEP, device);
+            } else {
+                println!("{}{}{}", NOT_OK_STATUS, SEP, device);
             }
-            None => println!("{}{}{}", NOT_OK_STATUS, SEP, device),
+        } else {
+            let device_info = get_device_info(device_short);
+            let mut result = args.format.clone();
+            for arg in ALL_ARGS {
+                result = result.replace(arg, &give_relevant(arg, &device_info, &device));
+            }
+            result = result.replace("\\t", "\t");
+            println!("{}", result);
         }
     }
 }
