@@ -47,7 +47,7 @@ pub fn execute_command(args: Vec<String>) {
     let all_devices = get_devices(args.update);
     let input_devices = get_input_devices(args.file, Some(args.devices));
     for device in input_devices {
-        match get_device_by_name(device.as_str(), &all_devices) {
+        match get_device_by_name(device.as_str(), &all_devices, false) {
             Some(d) => {
                 set_tag(&args.tag_key, &args.tag_value, &d, args.remove);
                 println!("{}{}{}", OK_STATUS, SEP, device);

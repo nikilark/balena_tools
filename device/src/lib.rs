@@ -89,6 +89,10 @@ struct Args {
     #[arg(short = 'u', long = "update", help = "Update cache before operation")]
     update: bool,
 
+    // To search
+    #[arg(short = 's', long = "search", help = "Search if name is incomplete")]
+    search: bool,
+
     // File with devices
     #[arg(short = 'f', long = "file", help = "File with devices, one per line")]
     file: Option<String>,
@@ -150,7 +154,7 @@ pub fn execute_command(args: Vec<String>) {
     let all_devices = get_devices(args.update);
     let input_devices = get_input_devices(args.file, Some(args.devices));
     for device in input_devices {
-        let device_short = get_device_by_name(device.as_str(), &all_devices);
+        let device_short = get_device_by_name(device.as_str(), &all_devices, args.search);
         if args.format.is_empty() {
             if device_short.is_some() {
                 open_url(device_short.unwrap());

@@ -33,7 +33,7 @@ pub fn execute_command(args: Vec<String>) {
     let all_devices = get_devices(args.update);
     let input_devices = get_input_devices(args.file, Some(args.devices));
     for device in input_devices {
-        match get_device_by_name(device.as_str(), &all_devices) {
+        match get_device_by_name(device.as_str(), &all_devices, false) {
             Some(d) => match get_device_long_info(d) {
                 Some(info) => {
                     let passed = |c: &String| {

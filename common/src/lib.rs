@@ -126,10 +126,10 @@ pub fn get_devices(force_update: bool) -> Vec<Device> {
         .collect()
 }
 
-pub fn get_device_by_name(name: &str, devices: &Vec<Device>) -> Option<Device> {
+pub fn get_device_by_name(name: &str, devices: &Vec<Device>, incomplete: bool) -> Option<Device> {
     let found: Vec<Device> = devices
         .iter()
-        .filter(|d| d.name == name)
+        .filter(|d| if incomplete {d.name.contains(&name)} else {d.name == name})
         .map(|f| f.clone())
         .collect();
     if found.len() == 1 {

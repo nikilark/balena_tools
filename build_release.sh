@@ -1,6 +1,7 @@
 version=$(cargo pkgid | grep -o '#.*' | cut -c2-10)
-git reset --hard HEAD
+git stash
 git tag "$version"
+cargo build
 for arch in "x86_64-pc-windows-gnu" "x86_64-unknown-linux-gnu"
 do
 cargo build --release --target $arch
