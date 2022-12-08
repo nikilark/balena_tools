@@ -1,7 +1,7 @@
 use clap::*;
 #[allow(unused_imports)]
 use commit;
-use common::{check_balena_installed, update_cache};
+use common::check_balena_installed;
 #[allow(unused_imports)]
 use device;
 #[allow(unused_imports)]
@@ -9,6 +9,8 @@ use for_each;
 use std::str::FromStr;
 #[allow(unused_imports)]
 use tag;
+#[allow(unused_imports)]
+use update;
 
 #[derive(Parser, Debug, PartialEq, Clone)]
 #[clap(rename_all = "snake_case")]
@@ -38,7 +40,7 @@ impl FromStr for BalenaCommands {
     }
 }
 
-const COMMAND_HELP : &str = "One of:\n
+const COMMAND_HELP: &str = "One of:\n
 tag | t -- to set/remove tag\n
 commit | c -- to check commit of devices\n
 for_each | foreach | fe -- to execute general command for list of devices\n
@@ -69,6 +71,6 @@ fn main() {
         BalenaCommands::Commit => commit::execute_command(rest_args),
         BalenaCommands::ForEach => for_each::execute_command(rest_args),
         BalenaCommands::Device => device::execute_command(rest_args),
-        BalenaCommands::UpdateCache => {update_cache();},
+        BalenaCommands::UpdateCache => update::execute_command(rest_args),
     }
 }

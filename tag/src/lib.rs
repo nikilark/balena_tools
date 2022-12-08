@@ -29,6 +29,13 @@ struct Args {
     #[arg(short = 'u', long = "update", help = "Update cache before operation")]
     update: bool,
 
+    // To update with specific fleet
+    #[arg(
+        long = "fleet",
+        help = "Update cache with specific fleet before operation"
+    )]
+    fleet: Option<String>,
+
     // Devices
     #[arg(help = "Devices")]
     devices: Vec<String>,
@@ -44,7 +51,7 @@ pub fn set_tag(key: &str, value: &str, to: &Device, remove: bool) {
 
 pub fn execute_command(args: Vec<String>) {
     let args = Args::parse_from(args);
-    let all_devices = get_devices(args.update);
+    let all_devices = get_devices(args.update, args.fleet);
     let input_devices = get_input_devices(args.file, Some(args.devices));
     for device in input_devices {
         match get_device_by_name(device.as_str(), &all_devices, false) {

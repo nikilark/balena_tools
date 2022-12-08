@@ -89,6 +89,13 @@ struct Args {
     #[arg(short = 'u', long = "update", help = "Update cache before operation")]
     update: bool,
 
+    // To update with specific fleet
+    #[arg(
+        long = "fleet",
+        help = "Update cache with specific fleet before operation"
+    )]
+    fleet: Option<String>,
+
     // To search
     #[arg(short = 's', long = "search", help = "Search if name is incomplete")]
     search: bool,
@@ -151,7 +158,7 @@ fn get_device_info(d: Option<Device>) -> DeviceLong {
 }
 pub fn execute_command(args: Vec<String>) {
     let args = Args::parse_from(args);
-    let all_devices = get_devices(args.update);
+    let all_devices = get_devices(args.update, args.fleet);
     let input_devices = get_input_devices(args.file, Some(args.devices));
     for device in input_devices {
         let device_short = get_device_by_name(device.as_str(), &all_devices, args.search);

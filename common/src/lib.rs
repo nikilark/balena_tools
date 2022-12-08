@@ -99,25 +99,32 @@ fn line_to_device(line: &str) -> Device {
     }
 }
 
-pub fn update_cache() -> String {
+pub fn update_cache(fleet: Option<String>) -> String {
     let c = get_cache_path();
     let path = std::path::Path::new(&c);
     if !path.exists() {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     }
-    let res = get_output("balena devices");
+    let res = if fleet.is_none() {
+        get_output("balena devices")
+    } else {
+        get_output(format!("balena devices --fleet {}", fleet.unwrap()).as_str())
+    };
+    if res.contains("BalenaApplicationNotFound") {
+        eprintln!("{}", res);
+    }
     std::fs::write(c, res.clone()).unwrap();
     res
 }
 
-pub fn get_devices(force_update: bool) -> Vec<Device> {
-    let mut file_content = if force_update {
-        update_cache()
+pub fn get_devices(force_update: bool, fleet: Option<String>) -> Vec<Device> {
+    let mut file_content = if force_update || fleet.is_some() {
+        update_cache(fleet.clone())
     } else {
         std::fs::read_to_string(get_cache_path()).unwrap_or("".to_string())
     };
     if file_content.is_empty() && !force_update {
-        file_content = update_cache();
+        file_content = update_cache(fleet);
     }
     file_content
         .split('\n')
@@ -129,7 +136,13 @@ pub fn get_devices(force_update: bool) -> Vec<Device> {
 pub fn get_device_by_name(name: &str, devices: &Vec<Device>, incomplete: bool) -> Option<Device> {
     let found: Vec<Device> = devices
         .iter()
-        .filter(|d| if incomplete {d.name.contains(&name)} else {d.name == name})
+        .filter(|d| {
+            if incomplete {
+                d.name.contains(&name)
+            } else {
+                d.name == name
+            }
+        })
         .map(|f| f.clone())
         .collect();
     if found.len() == 1 {
@@ -197,6 +210,7 @@ pub fn get_input_devices(file: Option<String>, other: Option<Vec<String>>) -> Ve
                         .trim()
                         .split('\n')
                         .map(|d| d.trim().to_string())
+                        .filter(|d| !d.is_empty())
                         .collect(),
                 );
             }
@@ -210,5 +224,12 @@ pub fn get_input_devices(file: Option<String>, other: Option<Vec<String>>) -> Ve
     }
     devices.sort();
     devices.dedup();
-    devices
+    if devices.contains(&"*".to_string()) {
+        get_devices(false, None)
+            .iter()
+            .map(|d| d.name.clone())
+            .collect()
+    } else {
+        devices
+    }
 }

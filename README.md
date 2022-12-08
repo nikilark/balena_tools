@@ -23,11 +23,11 @@ Getting list of balena devices takes some time, so tool saves list to file and t
 ```
 balena_tools update
 ```
-Also every command supports flag `-u` to do update list before execution
+Also every command supports flag `-u` and arg '--fleet' to do update list before execution
 
 ## Getting information about devices
 ```
-balena_tools device [-u] [--format <FORMAT_STRING>] [-f <FILE>] [DEVICES]
+balena_tools device [-u] [-s] [--fleet <FLEET>] [--format <FORMAT_STRING>] [-f <FILE>] [DEVICES]
 ```
 Aliases :
 - device
@@ -53,7 +53,7 @@ will list information about devices in devices.txt, columns : name, status, comm
 
 ## Setting tag on devices
 ```
-balena_tools tag [--rm] [-u] -k <KEY> [-v <VALUE>] [-f <FILE>] [DEVICES]
+balena_tools tag [--rm] [-u] [--fleet <FLEET>] -k <KEY> [-v <VALUE>] [-f <FILE>] [DEVICES]
 ```
 Aliases :
 - tag
@@ -69,7 +69,7 @@ balena_tools tag -k "my key" -v "my value" -f devices.txt
 
 ## Checking if device runs/doesn't run release
 ```
-balena_tools commit [--ne] [-u] -c <COMMIT> [-f <FILE>] [DEVICES]
+balena_tools commit [--ne] [-u] [--fleet <FLEET>] -c <COMMIT> [-f <FILE>] [DEVICES]
 ```
 Aliases :
 - commit
@@ -85,7 +85,7 @@ balena_tools commit -c "12345_rest_of_hash" -f devices.txt
 
 ## Running general balena command for every device
 ```
-balena_tools for_each [-u] [-d] -c <COMMAND> [-f <FILE>] [DEVICES]
+balena_tools for_each [-u] [-d] [--fleet <FLEET>] -c <COMMAND> [-f <FILE>] [DEVICES]
 ```
 Aliases (case **not** sensitive):
 - for_each
@@ -122,10 +122,10 @@ foreach uuid in [MY_DEVICE_FIRST.uuid, MY_DEVICE_SECOND.uuid]
 
 ## Updating cache
 ```
-balena_tools update
+balena_tools update [--fleet <FLEET>] 
 ```
 Aliases
 - update
 - u
 
-Writes output of `balena devices` to <exe_path>/cache/devices.txt
+Writes output of `balena devices [--fleet <FLEET>]` to <exe_path>/cache/devices.txt
