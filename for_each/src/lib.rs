@@ -5,12 +5,13 @@ use common::*;
 #[command(author, version, about="Runs command for every device. Eq to \"foreach uuid in devices {balena $command $uuid}\"", long_about = None, trailing_var_arg=true)]
 struct Args {
     // Balena command
-    #[arg(short = 'c', long = "command", help = "Command to apply")]
+    #[arg(short = 'c', long = "command", help = "Command to execute")]
     command: String,
 
     // To update
     #[arg(short = 'u', long = "update", help = "Update cache before operation")]
     update: bool,
+
     // To update with specific fleet
     #[arg(
         long = "fleet",

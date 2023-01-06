@@ -83,6 +83,23 @@ Both DEVICES and FILE should contain **names** of devices. FILE should contain o
 balena_tools commit -c "12345_rest_of_hash" -f devices.txt
 ```
 
+
+## Execute command through balena ssh
+```
+balena_tools exec [-u] [--fleet <FLEET>] [--service <SERVICE>] --command <COMMAND> [DEVICES]
+```
+Aliases :
+- execute
+- e
+
+Executes shell command through balena ssh
+
+Both DEVICES and FILE should contain **names** of devices. FILE should contain one name per line
+### Example
+```
+balena_tools exec --command "uptime" --service myservice -f devices.txt
+```
+
 ## Running general balena command for every device
 ```
 balena_tools for_each [-u] [-d] [--fleet <FLEET>] -c <COMMAND> [-f <FILE>] [DEVICES]
