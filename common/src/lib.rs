@@ -50,6 +50,10 @@ pub struct DeviceLong {
     pub storage_usage_percent: u8,
 }
 
+pub trait BalenaCommand {
+    fn execute(&self, args : Vec<String>);
+}
+
 fn get_cache_path() -> String {
     return format!(
         "{}{}",

@@ -1,7 +1,8 @@
 use clap::*;
+use std::collections::HashMap;
 #[allow(unused_imports)]
 use commit;
-use common::check_balena_installed;
+use common::{check_balena_installed, BalenaCommand};
 #[allow(unused_imports)]
 use device;
 #[allow(unused_imports)]
@@ -14,7 +15,7 @@ use tag;
 #[allow(unused_imports)]
 use update;
 
-#[derive(Parser, Debug, PartialEq, Clone)]
+#[derive(Parser, Debug, PartialEq, Clone, Hash, Eq)]
 #[clap(rename_all = "snake_case")]
 enum BalenaCommands {
     Tag,
@@ -71,12 +72,13 @@ fn main() {
     let short_args = std::env::args().take(2).collect::<Vec<String>>();
     let rest_args = std::env::args().skip(1).collect::<Vec<String>>();
     let command = Args::parse_from(short_args).command;
-    match command {
-        BalenaCommands::Tag => tag::execute_command(rest_args),
-        BalenaCommands::Commit => commit::execute_command(rest_args),
-        BalenaCommands::ForEach => for_each::execute_command(rest_args),
-        BalenaCommands::Device => device::execute_command(rest_args),
-        BalenaCommands::UpdateCache => update::execute_command(rest_args),
-        BalenaCommands::Execute => exec::execute_command(rest_args),
-    }
+    let mut commands_dict : HashMap<BalenaCommands, Box<dyn BalenaCommand>> = HashMap::new();
+    commands_dict.insert(BalenaCommands::Execute, Box::new(exec::ExecCommand{}));
+    commands_dict.insert(BalenaCommands::Device, Box::new(device::DeviceCommand{}));
+    commands_dict.insert(BalenaCommands::Tag, Box::new(tag::TagCommand{}));
+    commands_dict.insert(BalenaCommands::Commit, Box::new(commit::CommitCommand{}));
+    commands_dict.insert(BalenaCommands::ForEach, Box::new(for_each::ForEqchCommand{}));
+    commands_dict.insert(BalenaCommands::UpdateCache, Box::new(update::UpdateCommand{}));
+    let value = commands_dict.get(&command).unwrap();
+    value.execute(rest_args);
 }
