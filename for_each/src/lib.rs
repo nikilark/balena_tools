@@ -32,23 +32,26 @@ struct Args {
     devices: Vec<String>,
 }
 
-pub fn execute_command(args: Vec<String>) {
-    let args = Args::parse_from(args);
-    let all_devices = get_devices(args.update, args.fleet);
-    let input_devices = get_input_devices(args.file, Some(args.devices));
-    for device in input_devices {
-        match get_device_by_name(device.as_str(), &all_devices, false) {
-            Some(d) => {
-                let command = format!(
-                    "balena {} {} {}",
-                    args.command,
-                    if args.device_uuid { "--device" } else { "" },
-                    d.uuid
-                );
-                get_output(&command);
-                println!("{}{}{}", OK_STATUS, SEP, device)
+pub struct ForEachCommand {}
+impl BalenaCommand for ForEachCommand {
+    fn execute(&self, args: Vec<String>) {
+        let args = Args::parse_from(args);
+        let all_devices = get_devices(args.update, args.fleet);
+        let input_devices = get_input_devices(args.file, Some(args.devices));
+        for device in input_devices {
+            match get_device_by_name(device.as_str(), &all_devices, false) {
+                Some(d) => {
+                    let command = format!(
+                        "balena {} {} {}",
+                        args.command,
+                        if args.device_uuid { "--device" } else { "" },
+                        d.uuid
+                    );
+                    get_output(&command);
+                    println!("{}{}{}", OK_STATUS, SEP, device)
+                }
+                None => println!("{}{}{}", NOT_OK_STATUS, SEP, device),
             }
-            None => println!("{}{}{}", NOT_OK_STATUS, SEP, device),
         }
     }
 }

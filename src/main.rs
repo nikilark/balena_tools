@@ -1,5 +1,4 @@
 use clap::*;
-use std::collections::HashMap;
 #[allow(unused_imports)]
 use commit;
 use common::{check_balena_installed, BalenaCommand};
@@ -9,6 +8,7 @@ use device;
 use exec;
 #[allow(unused_imports)]
 use for_each;
+use std::collections::HashMap;
 use std::str::FromStr;
 #[allow(unused_imports)]
 use tag;
@@ -69,16 +69,21 @@ fn main() {
         );
         return;
     }
-    let short_args = std::env::args().take(2).collect::<Vec<String>>();
-    let rest_args = std::env::args().skip(1).collect::<Vec<String>>();
-    let command = Args::parse_from(short_args).command;
-    let mut commands_dict : HashMap<BalenaCommands, Box<dyn BalenaCommand>> = HashMap::new();
-    commands_dict.insert(BalenaCommands::Execute, Box::new(exec::ExecCommand{}));
-    commands_dict.insert(BalenaCommands::Device, Box::new(device::DeviceCommand{}));
-    commands_dict.insert(BalenaCommands::Tag, Box::new(tag::TagCommand{}));
-    commands_dict.insert(BalenaCommands::Commit, Box::new(commit::CommitCommand{}));
-    commands_dict.insert(BalenaCommands::ForEach, Box::new(for_each::ForEqchCommand{}));
-    commands_dict.insert(BalenaCommands::UpdateCache, Box::new(update::UpdateCommand{}));
-    let value = commands_dict.get(&command).unwrap();
-    value.execute(rest_args);
+    let mut commands_dict: HashMap<BalenaCommands, Box<dyn BalenaCommand>> = HashMap::new();
+    commands_dict.insert(BalenaCommands::Execute, Box::new(exec::ExecCommand {}));
+    commands_dict.insert(BalenaCommands::Device, Box::new(device::DeviceCommand {}));
+    commands_dict.insert(BalenaCommands::Tag, Box::new(tag::TagCommand {}));
+    commands_dict.insert(BalenaCommands::Commit, Box::new(commit::CommitCommand {}));
+    commands_dict.insert(
+        BalenaCommands::ForEach,
+        Box::new(for_each::ForEachCommand {}),
+    );
+    commands_dict.insert(
+        BalenaCommands::UpdateCache,
+        Box::new(update::UpdateCommand {}),
+    );
+    let value = commands_dict
+        .get(&Args::parse_from(std::env::args().take(2).collect::<Vec<String>>()).command)
+        .unwrap();
+    value.execute(std::env::args().skip(1).collect::<Vec<String>>());
 }

@@ -35,30 +35,34 @@ struct Args {
     devices: Vec<String>,
 }
 
-pub fn execute_command(args: Vec<String>) {
-    let args = Args::parse_from(args);
-    let all_devices = get_devices(args.update, args.fleet);
-    let input_devices = get_input_devices(args.file, Some(args.devices));
-    for device in input_devices {
-        match get_device_by_name(device.as_str(), &all_devices, false) {
-            Some(d) => match get_device_long_info(d) {
-                Some(info) => {
-                    let passed = |c: &String| {
-                        if args.ne {
-                            *c != args.commit
+pub struct CommitCommand {}
+
+impl BalenaCommand for CommitCommand {
+    fn execute(&self, args: Vec<String>) {
+        let args = Args::parse_from(args);
+        let all_devices = get_devices(args.update, args.fleet);
+        let input_devices = get_input_devices(args.file, Some(args.devices));
+        for device in input_devices {
+            match get_device_by_name(device.as_str(), &all_devices, false) {
+                Some(d) => match get_device_long_info(d) {
+                    Some(info) => {
+                        let passed = |c: &String| {
+                            if args.ne {
+                                *c != args.commit
+                            } else {
+                                *c == args.commit
+                            }
+                        };
+                        if passed(&info.commit) {
+                            println!("{}{}{}{}{}", OK_STATUS, SEP, device, SEP, info.commit);
                         } else {
-                            *c == args.commit
+                            println!("{}{}{}{}{}", NOT_OK_STATUS, SEP, device, SEP, info.commit);
                         }
-                    };
-                    if passed(&info.commit) {
-                        println!("{}{}{}{}{}", OK_STATUS, SEP, device, SEP, info.commit);
-                    } else {
-                        println!("{}{}{}{}{}", NOT_OK_STATUS, SEP, device, SEP, info.commit);
                     }
-                }
+                    None => println!("{}{}{}{}", NOT_OK_STATUS, SEP, device, SEP),
+                },
                 None => println!("{}{}{}{}", NOT_OK_STATUS, SEP, device, SEP),
-            },
-            None => println!("{}{}{}{}", NOT_OK_STATUS, SEP, device, SEP),
+            }
         }
     }
 }

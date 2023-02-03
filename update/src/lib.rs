@@ -12,7 +12,10 @@ struct Args {
     fleet: Option<String>,
 }
 
-pub fn execute_command(args: Vec<String>) {
-    let args = Args::parse_from(args);
-    update_cache(args.fleet);
+pub struct UpdateCommand {}
+impl BalenaCommand for UpdateCommand {
+    fn execute(&self, args: Vec<String>) {
+        let args = Args::parse_from(args);
+        update_cache(args.fleet);
+    }
 }

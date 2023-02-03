@@ -41,25 +41,29 @@ struct Args {
     devices: Vec<String>,
 }
 
-pub fn set_tag(key: &str, value: &str, to: &Device, remove: bool) {
-    if !remove {
-        get_output(format!("balena tag set {} {} --device {}", key, value, to.uuid).as_str());
-    } else {
-        get_output(format!("balena tag rm {} --device {}", key, to.uuid).as_str());
+pub struct TagCommand {}
+impl TagCommand {
+    pub fn set_tag(&self, key: &str, value: &str, to: &Device, remove: bool) {
+        if !remove {
+            get_output(format!("balena tag set {} {} --device {}", key, value, to.uuid).as_str());
+        } else {
+            get_output(format!("balena tag rm {} --device {}", key, to.uuid).as_str());
+        }
     }
 }
-
-pub fn execute_command(args: Vec<String>) {
-    let args = Args::parse_from(args);
-    let all_devices = get_devices(args.update, args.fleet);
-    let input_devices = get_input_devices(args.file, Some(args.devices));
-    for device in input_devices {
-        match get_device_by_name(device.as_str(), &all_devices, false) {
-            Some(d) => {
-                set_tag(&args.tag_key, &args.tag_value, &d, args.remove);
-                println!("{}{}{}", OK_STATUS, SEP, device);
+impl BalenaCommand for TagCommand {
+    fn execute(&self, args: Vec<String>) {
+        let args = Args::parse_from(args);
+        let all_devices = get_devices(args.update, args.fleet);
+        let input_devices = get_input_devices(args.file, Some(args.devices));
+        for device in input_devices {
+            match get_device_by_name(device.as_str(), &all_devices, false) {
+                Some(d) => {
+                    self.set_tag(&args.tag_key, &args.tag_value, &d, args.remove);
+                    println!("{}{}{}", OK_STATUS, SEP, device);
+                }
+                None => println!("{}{}{}", NOT_OK_STATUS, SEP, device),
             }
-            None => println!("{}{}{}", NOT_OK_STATUS, SEP, device),
         }
     }
 }
