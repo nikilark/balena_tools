@@ -61,7 +61,18 @@ struct Args {
     command: BalenaCommands,
 }
 
+#[cfg(unix)]
+fn reset_sigpipe() {
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+    }
+}
+
+#[cfg(not(unix))]
+fn reset_sigpipe() {}
+
 fn main() {
+    reset_sigpipe();
     if !check_balena_installed() {
         println!(
             "Balena cli not found, please install balena cli : \n {}",

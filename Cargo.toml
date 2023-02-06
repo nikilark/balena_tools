@@ -12,5 +12,6 @@ common = { version = "0.1.0", path = "common" }
 device = { version = "0.1.0", path = "device" }
 exec = { version = "0.1.0", path = "exec" }
 for_each = { version = "0.1.0", path = "for_each" }
+libc = "0.2.139"
 tag = { version = "0.1.0", path = "tag" }
 update = { version = "0.1.0", path = "update" }
