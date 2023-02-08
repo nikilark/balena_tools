@@ -169,18 +169,22 @@ impl BalenaCommand for DeviceCommand {
         let input_devices = get_input_devices(args.file, Some(args.devices));
         for device in input_devices {
             let device_short = get_device_by_name(device.as_str(), &all_devices, args.search);
+            let device_name = match device_short.clone() {
+                Some(d) => d.name,
+                None => device.clone()
+            };
             if args.format.is_empty() {
                 if device_short.is_some() {
                     self.open_url(device_short.unwrap());
-                    println!("{}{}{}", OK_STATUS, SEP, device);
+                    println!("{}{}{}", OK_STATUS, SEP, device_name);
                 } else {
-                    println!("{}{}{}", NOT_OK_STATUS, SEP, device);
+                    println!("{}{}{}", NOT_OK_STATUS, SEP, device_name);
                 }
             } else {
                 let device_info = self.get_device_info(device_short);
                 let mut result = args.format.clone();
                 for arg in Self::ALL_ARGS {
-                    result = result.replace(arg, &self.give_relevant(arg, &device_info, &device));
+                    result = result.replace(arg, &self.give_relevant(arg, &device_info, &device_name));
                 }
                 result = result.replace("\\t", "\t");
                 println!("{}", result);
